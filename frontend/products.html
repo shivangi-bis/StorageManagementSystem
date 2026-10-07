@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Products - Storage Management System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <header class="navbar">
+
+            <h1>Storage Management System</h1>
+
+            <div>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="products.html">Products</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="orders.html">Orders</a>
+                <button id="logoutBtn">Logout</button>
+            </div>
+
+        </header>
+
+        <main>
+
+            <h2>Products</h2>
+
+            <button id="addProductBtn">
+                Add Product
+            </button>
+
+
+            <!-- Add / Edit Product Form -->
+
+            <form id="addProductForm">
+
+                <h3 id="formTitle">
+                    Add New Product
+                </h3>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Product name"
+                    required
+                >
+
+                <input
+                    type="number"
+                    id="productPrice"
+                    placeholder="Price"
+                    required
+                >
+
+                <input
+                    type="text"
+                    id="productCategory"
+                    placeholder="Category"
+                    required
+                >
+
+                <textarea
+                    id="productDescription"
+                    placeholder="Description"
+                ></textarea>
+
+                <button type="submit" id="saveProductBtn">
+                    Save Product
+                </button>
+
+                <button
+                    type="button"
+                    id="cancelProductBtn"
+                >
+                    Cancel
+                </button>
+
+            </form>
+
+
+            <!-- Product List -->
+
+            <div id="productList"></div>
+
+        </main>
+
+    </div>
+
+    <script src="products.js"></script>
+
+</body>
+
+</html>

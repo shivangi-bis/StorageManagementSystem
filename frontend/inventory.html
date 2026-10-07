@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory - Storage Management System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <header class="navbar">
+
+            <h1>Storage Management System</h1>
+
+            <div>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="products.html">Products</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="orders.html">Orders</a>
+                <button id="logoutBtn">Logout</button>
+            </div>
+
+        </header>
+
+        <main>
+
+            <h2>Inventory</h2>
+
+            <button id="addInventoryBtn">
+                Add Inventory
+            </button>
+
+
+            <!-- Add / Edit Inventory Form -->
+
+            <form id="addInventoryForm">
+
+                <h3 id="inventoryFormTitle">
+                    Add Inventory Entry
+                </h3>
+
+                <select
+                    id="inventoryProduct"
+                    required
+                >
+                    <option value="">
+                        -- Select Product --
+                    </option>
+                </select>
+
+                <input
+                    type="number"
+                    id="inventoryQuantity"
+                    placeholder="Quantity"
+                    required
+                    min="0"
+                >
+
+                <button
+                    type="submit"
+                    id="saveInventoryBtn"
+                >
+                    Save
+                </button>
+
+                <button
+                    type="button"
+                    id="cancelInventoryBtn"
+                >
+                    Cancel
+                </button>
+
+            </form>
+
+
+            <!-- Inventory List -->
+
+            <div id="inventoryList"></div>
+
+        </main>
+
+    </div>
+
+    <script src="inventory.js"></script>
+
+</body>
+
+</html>

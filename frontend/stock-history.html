@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock History</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <nav class="navbar">
+            <h2>Storage Management System</h2>
+
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="products.html">Products</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="orders.html">Orders</a>
+                <a href="stock-history.html">Stock History</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-content">
+
+            <h1>Stock History</h1>
+            <p>Track all stock movements in your storage system.</p>
+
+            <div class="table-container">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Reason</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="5">Loading...</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="stock-history.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Storage Management System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <header class="navbar">
+            <h1>Storage Management System</h1>
+
+            <div>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="products.html">Products</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="orders.html">Orders</a>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </header>
+
+        <main>
+
+            <h2>Dashboard</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <h3>Products</h3>
+                    <p id="productCount">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Inventory</h3>
+                    <p id="inventoryCount">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Orders</h3>
+                    <p id="orderCount">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Low Stock</h3>
+                    <p id="lowStockCount">0</p>
+                </div>
+
+                <div class="recent-movements">
+                    <h3>Recent Stock Movements</h3>
+
+                    <div id="recentMovements">
+                        <p>Loading...</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="dashboard.js"></script>
+
+</body>
+</html>

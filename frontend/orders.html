@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Orders - Storage Management System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <header class="navbar">
+
+            <h1>Storage Management System</h1>
+
+            <div>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="products.html">Products</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="orders.html">Orders</a>
+                <button id="logoutBtn">Logout</button>
+            </div>
+
+        </header>
+
+        <main>
+
+            <h2>Orders</h2>
+
+            <!-- Create Order Button -->
+            <button id="addOrderBtn">
+                Create Order
+            </button>
+
+
+            <!-- Create Order Form -->
+            <form id="addOrderForm">
+
+                <h3>Create New Order</h3>
+
+                <select id="orderProduct" required>
+                    <option value="">-- Select Product --</option>
+                </select>
+
+                <input
+                    type="number"
+                    id="orderQuantity"
+                    placeholder="Quantity"
+                    required
+                    min="1"
+                >
+
+                <button type="submit">
+                    Place Order
+                </button>
+
+                <button
+                    type="button"
+                    id="cancelOrderBtn"
+                >
+                    Cancel
+                </button>
+
+            </form>
+
+
+            <!-- Orders List -->
+            <div id="orderList">
+
+                <!-- Orders will appear here -->
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="orders.js"></script>
+
+</body>
+
+</html>
