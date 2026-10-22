@@ -63,6 +63,38 @@
 
         </main>
 
+
+<!-- Chatbot floating button -->
+<button id="chatToggle" class="chat-toggle" type="button">
+    💬 Chat with AI
+</button>
+
+<!-- Chatbot window -->
+<div id="chatWidget" class="chat-widget hidden">
+    <div class="chat-header">
+        <h3>Storage Assistant</h3>
+        <button id="chatClose" type="button" aria-label="Close chat">×</button>
+    </div>
+
+    <div id="chatMessages" class="chat-messages">
+        <div class="bot-message">
+            Hi! Ask me about products, stock, orders or stock history.
+        </div>
+    </div>
+
+    <form id="chatForm" class="chat-form">
+        <input
+            id="chatInput"
+            type="text"
+            placeholder="Ask about your inventory..."
+            autocomplete="off"
+            required
+        >
+        <button id="chatSend" type="submit">Send</button>
+    </form>
+</div>
+
+
     </div>
 
     <script src="dashboard.js"></script>

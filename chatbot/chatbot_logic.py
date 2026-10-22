@@ -1,14 +1,22 @@
-import json
 
+import json
 from openai import OpenAI
-from django.conf import settings
 
 from products.models import Product
 from orders.models import Order
 from stock_history.models import StockMovement
 
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+# =========================================================
+# OLLAMA LLM CLIENT
+# =========================================================
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+OLLAMA_MODEL = "qwen2.5:1.5b"
 
 
 # =========================================================
@@ -31,6 +39,18 @@ def get_product_list():
     ]
 
 
+def get_total_stock():
+    total = 0
+
+    for product in Product.objects.all():
+        try:
+            total += product.inventory.quantity
+        except Exception:
+            pass
+
+    return total
+
+
 def get_product_stock(product_name):
     products = Product.objects.filter(name__icontains=product_name)
 
@@ -43,10 +63,8 @@ def get_product_stock(product_name):
     result = []
 
     for product in products:
-
         try:
-            inventory = product.inventory
-            quantity = inventory.quantity
+            quantity = product.inventory.quantity
         except Exception:
             quantity = 0
 
@@ -64,12 +82,9 @@ def get_product_stock(product_name):
 
 def get_low_stock_products():
     LOW_STOCK_LIMIT = 5
-
-    products = Product.objects.all()
     result = []
 
-    for product in products:
-
+    for product in Product.objects.all():
         try:
             quantity = product.inventory.quantity
         except Exception:
@@ -111,116 +126,216 @@ def get_recent_stock_movements():
 
 
 # =========================================================
-# LLM INTENT DETECTION
+# INTENT DETECTION
 # =========================================================
 
 def detect_intent(question):
+    question = " ".join(question.lower().strip().split())
 
-    response = client.responses.create(
-        model="gpt-4o-mini",
-        input=f"""
-You are an intent classifier for a Storage Management System.
+    # Total number of products
+    if any(phrase in question for phrase in [
+        "how many products",
+        "product count",
+        "total products",
+        "number of products",
+        "count products",
+    ]):
+        return {"intent": "PRODUCT_COUNT", "product_name": None}
 
-Understand the user's question.
+    # Total stock across all products
+    if any(phrase in question for phrase in [
+        "how many stock is left",
+        "how much stock is left",
+        "total stock",
+        "overall stock",
+        "total quantity",
+        "how much inventory",
+        "how many items are in stock",
+        "available stock",
+        "remaining stock",
+        "how much stock is available",
+        "how many units are in stock",
+    ]):
+        return {"intent": "TOTAL_STOCK", "product_name": None}
 
-Choose exactly ONE of these intents:
+    # Low or out-of-stock products
+    if any(phrase in question for phrase in [
+        "low stock",
+        "running low",
+        "almost out of stock",
+        "out of stock",
+        "which products are low",
+        "products running low",
+        "stock is low",
+    ]):
+        return {"intent": "LOW_STOCK", "product_name": None}
 
+    # Order count
+    if any(phrase in question for phrase in [
+        "how many orders",
+        "order count",
+        "total orders",
+        "number of orders",
+        "count orders",
+    ]):
+        return {"intent": "ORDER_COUNT", "product_name": None}
+
+    # Product list
+    if any(phrase in question for phrase in [
+        "show me all products",
+        "list products",
+        "show all products",
+        "product list",
+        "all products",
+        "list all products",
+    ]):
+        return {"intent": "PRODUCT_LIST", "product_name": None}
+
+    # Recent stock history
+    if any(phrase in question for phrase in [
+        "recent stock movements",
+        "latest stock movements",
+        "stock history",
+        "stock movement history",
+        "recent stock history",
+    ]):
+        return {
+            "intent": "RECENT_STOCK_MOVEMENTS",
+            "product_name": None
+        }
+
+    # Ask the LLM to classify other questions
+    try:
+        response = client.chat.completions.create(
+            model=OLLAMA_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
+You classify questions for a Storage Management System.
+
+Choose exactly one intent:
 PRODUCT_COUNT
 PRODUCT_LIST
 PRODUCT_STOCK
+TOTAL_STOCK
 LOW_STOCK
 ORDER_COUNT
 RECENT_STOCK_MOVEMENTS
 UNKNOWN
 
-If the intent is PRODUCT_STOCK, also identify the product name.
+PRODUCT_STOCK means asking about the quantity of a
+specific named product. Extract its product name.
 
-Return ONLY valid JSON.
+TOTAL_STOCK means asking about total stock across all products.
 
-For normal questions:
-{{
-    "intent": "PRODUCT_COUNT",
-    "product_name": null
-}}
+Return ONLY valid JSON in this format:
+{"intent": "PRODUCT_STOCK", "product_name": "Keyboard"}
 
-For product stock questions:
-{{
-    "intent": "PRODUCT_STOCK",
-    "product_name": "Dell Inspiron Laptop"
-}}
-
-Examples:
-
-"How many products do I have?"
-=> PRODUCT_COUNT
-
-"Show me all products"
-=> PRODUCT_LIST
-
-"What is the stock of Dell Inspiron Laptop?"
-=> PRODUCT_STOCK
-
-"Which products are running low?"
-=> LOW_STOCK
-
-"Which products are almost out of stock?"
-=> LOW_STOCK
-
-"How many orders are there?"
-=> ORDER_COUNT
-
-"Show me the latest stock movements"
-=> RECENT_STOCK_MOVEMENTS
-
-User question:
-{question}
+If no product name is needed, use null.
+If the question is unrelated or unclear, use UNKNOWN.
 """
-    )
+                },
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ],
+            temperature=0
+        )
 
-    result = response.output_text.strip()
+        result = response.choices[0].message.content.strip()
 
-    try:
-        return json.loads(result)
+        if result.startswith("```"):
+            result = result.replace("```json", "").replace("```", "").strip()
 
-    except json.JSONDecodeError:
-        return {
-            "intent": "UNKNOWN",
-            "product_name": None
+        parsed = json.loads(result)
+
+        allowed_intents = {
+            "PRODUCT_COUNT",
+            "PRODUCT_LIST",
+            "PRODUCT_STOCK",
+            "TOTAL_STOCK",
+            "LOW_STOCK",
+            "ORDER_COUNT",
+            "RECENT_STOCK_MOVEMENTS",
+            "UNKNOWN",
         }
+
+        if parsed.get("intent") not in allowed_intents:
+            raise ValueError("Invalid intent")
+
+        return {
+            "intent": parsed["intent"],
+            "product_name": parsed.get("product_name")
+        }
+
+    except Exception:
+        return {"intent": "UNKNOWN", "product_name": None}
 
 
 # =========================================================
-# LLM ANSWER GENERATION
+# ANSWER GENERATION
 # =========================================================
 
 def generate_answer(question, intent_data, database_data):
+    # Return clear database-based answers without relying on
+    # the LLM to calculate or interpret inventory numbers.
 
-    response = client.responses.create(
-        model="gpt-4o-mini",
-        input=f"""
-You are a helpful assistant for a Storage Management System.
+    intent = intent_data.get("intent")
 
-Answer the user's question using ONLY the database information
-provided below.
+    if intent == "TOTAL_STOCK":
+        return f"The total available stock is {database_data['total_stock']} units."
 
-Do NOT invent any information.
+    if intent == "PRODUCT_COUNT":
+        return f"You have {database_data['product_count']} products."
 
-Keep the answer short, clear, and natural.
+    if intent == "ORDER_COUNT":
+        return f"You have {database_data['order_count']} orders."
 
-User question:
-{question}
+    if intent == "PRODUCT_LIST":
+        products = database_data.get("products", [])
 
-Detected intent:
-{json.dumps(intent_data)}
+        if not products:
+            return "There are no products in your inventory."
 
-Database information:
-{json.dumps(database_data, default=str)}
+        names = ", ".join(product["name"] for product in products)
+        return f"Your products are: {names}."
 
-Give only the final answer to the user.
-"""
-    )
+    if intent == "PRODUCT_STOCK":
+        if not database_data.get("found"):
+            return database_data.get("message", "Product not found.")
 
-    return response.output_text.strip()
+        products = database_data.get("products", [])
+        return "\n".join(
+            f"{product['name']}: {product['stock']} units in stock."
+            for product in products
+        )
+
+    if intent == "LOW_STOCK":
+        products = database_data.get("low_stock_products", [])
+
+        if not products:
+            return "No low-stock products were found."
+
+        return "Low-stock products:\n" + "\n".join(
+            f"{product['name']}: {product['stock']} units"
+            for product in products
+        )
+
+    if intent == "RECENT_STOCK_MOVEMENTS":
+        movements = database_data.get("recent_stock_movements", [])
+
+        if not movements:
+            return "No recent stock movements were found."
+
+        return "\n".join(
+            f"{item['product']}: {item['type']} "
+            f"{item['quantity']} units — {item['reason']}"
+            for item in movements
+        )
+
+    return "Sorry, I couldn't find an answer to that question."
 
 
 # =========================================================
@@ -228,28 +343,27 @@ Give only the final answer to the user.
 # =========================================================
 
 def process_question(question):
-
     intent_data = detect_intent(question)
 
     intent = intent_data.get("intent")
     product_name = intent_data.get("product_name")
 
-    database_data = None
-
     if intent == "PRODUCT_COUNT":
-
         database_data = {
             "product_count": get_product_count()
         }
 
-    elif intent == "PRODUCT_LIST":
+    elif intent == "TOTAL_STOCK":
+        database_data = {
+            "total_stock": get_total_stock()
+        }
 
+    elif intent == "PRODUCT_LIST":
         database_data = {
             "products": get_product_list()
         }
 
     elif intent == "PRODUCT_STOCK":
-
         if not product_name:
             return {
                 "intent": intent,
@@ -259,25 +373,21 @@ def process_question(question):
         database_data = get_product_stock(product_name)
 
     elif intent == "LOW_STOCK":
-
         database_data = {
             "low_stock_products": get_low_stock_products()
         }
 
     elif intent == "ORDER_COUNT":
-
         database_data = {
             "order_count": get_order_count()
         }
 
     elif intent == "RECENT_STOCK_MOVEMENTS":
-
         database_data = {
             "recent_stock_movements": get_recent_stock_movements()
         }
 
     else:
-
         return {
             "intent": "UNKNOWN",
             "answer": "Sorry, I couldn't understand your question."
@@ -301,10 +411,14 @@ def process_question(question):
 # =========================================================
 
 def test_llm():
-
-    response = client.responses.create(
-        model="gpt-4o-mini",
-        input="Say hello in one short sentence."
+    response = client.chat.completions.create(
+        model=OLLAMA_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": "Say hello in one short sentence."
+            }
+        ]
     )
 
-    return response.output_text
+    return response.choices[0].message.content.strip()

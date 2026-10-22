@@ -1,0 +1,9 @@
+
+venv/
+.git/
+.env
+__pycache__/
+*.py[cod]
+*.sqlite3
+data.json
+data_backup_utf16.json
