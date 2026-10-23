@@ -1,18 +1,20 @@
 # Storage Management System
 
-A full-stack inventory management application built with Django REST Framework, PostgreSQL, and JavaScript. The application enables authenticated users to manage products, monitor inventory, process orders, track stock movements, and query inventory information through an AI-powered chatbot.
+A full-stack inventory management application built with Django REST Framework, PostgreSQL, and JavaScript. It helps manage products, track inventory, process orders, record stock movements, and retrieve inventory information through a database-aware chatbot.
 
 ## Features
 
-- **Authentication:** User login and logout with JWT-based authentication.
+- **JWT Authentication:** Authenticated access using JSON Web Tokens.
 - **Product Management:** Create, view, update, and delete products.
 - **Inventory Tracking:** Monitor stock quantities and identify low-stock products.
-- **Order Management:** Process orders with automatic stock deduction and stock restoration when an order is deleted.
-- **Stock Movement History:** Track incoming and outgoing stock movements and their reasons.
+- **Order Management:** Create and update orders with automatic inventory adjustments.
+- **Stock Restoration:** Restore inventory when an order is deleted.
+- **Stock Movement History:** Record incoming and outgoing stock movements with reasons.
 - **Dashboard:** View inventory summaries and recent stock activity.
-- **AI-Powered Chatbot:** Ask natural-language questions about products, available stock, low-stock items, orders, and recent stock movements.
-- **REST API:** Backend API endpoints built with Django REST Framework.
-- **Database:** PostgreSQL for persistent application data.
+- **Inventory Chatbot:** Ask questions about products, stock levels, low-stock items, orders, and recent stock movements.
+- **REST API:** API endpoints built using Django REST Framework.
+- **PostgreSQL Database:** Persistent relational data storage.
+- **Docker Support:** Dockerfile and Docker Compose configuration for containerized development.
 
 ## Technology Stack
 
@@ -23,13 +25,13 @@ A full-stack inventory management application built with Django REST Framework, 
 | Authentication | Simple JWT |
 | Database | PostgreSQL |
 | Frontend | HTML, CSS, JavaScript |
-| Local Language Model | Ollama with Qwen 2.5 (1.5B) |
+| Chatbot LLM | Ollama with Qwen 2.5 (1.5B) |
 | API Format | REST / JSON |
-| Containerization | Docker and Docker Compose — setup to be verified |
+| Containerization | Docker, Docker Compose |
 
-## Application Architecture
+## Architecture
 
-The frontend communicates with Django REST API endpoints. Django handles authentication, business logic, and database operations. The chatbot interprets user questions and retrieves relevant inventory information from the database, using a locally hosted language model for intent classification where configured.
+The frontend communicates with the Django REST API. Django handles authentication, application logic, and database operations. The inventory chatbot interprets supported questions and retrieves information from application data. When configured and available, a locally hosted language model assists with natural-language intent handling.
 
 ## Project Structure
 
@@ -43,25 +45,26 @@ StorageManagementSystem/
 ├── chatbot/
 ├── manage.py
 ├── requirements.txt
-├── .gitignore
-├── .env.example
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
 ```
 
-*The structure is illustrative. Keep only files and directories that actually exist in the repository.*
+*This is a high-level overview. The exact files may vary with the current repository structure.*
 
 ## Prerequisites
 
 For local development:
 
-- Python compatible with the project's dependencies
+- Python version compatible with the project dependencies
 - PostgreSQL
 - Git
-- Ollama, if you want to run the chatbot with the local language model
+- Ollama, if using the local language model
 
-For containerized development, Docker Desktop with Docker Compose is also required.
+For containerized development:
+
+- Docker Desktop
+- Docker Compose
 
 ## Local Installation
 
@@ -72,9 +75,9 @@ git clone https://github.com/shivangi-bis/StorageManagementSystem.git
 cd StorageManagementSystem
 ```
 
-### 2. Create a virtual environment
+### 2. Create and activate a virtual environment
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 python -m venv venv
@@ -84,22 +87,22 @@ python -m venv venv
 ### 3. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 4. Configure environment variables
 
-Create a local `.env` file using the project's required settings. Configure the Django secret key, database name, database username, database password, host, and port according to the actual application configuration.
+Configure the environment variables required by the project, including the Django secret key and PostgreSQL connection settings.
 
-Do not commit `.env` or production credentials to version control.
+Use a local `.env` file if the project configuration expects one. Never commit real credentials or secrets to version control.
 
-### 5. Apply migrations
+### 5. Apply database migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Create an administrator account if needed
+### 6. Create an administrator account
 
 ```bash
 python manage.py createsuperuser
@@ -111,9 +114,9 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/` and navigate to the application's configured login or dashboard page.
+Open `http://127.0.0.1:8000/` and navigate to the appropriate application page or API endpoint.
 
-## Running the AI Chatbot
+## Running the Chatbot
 
 Install Ollama and download the configured model:
 
@@ -121,7 +124,7 @@ Install Ollama and download the configured model:
 ollama pull qwen2.5:1.5b
 ```
 
-Start the Ollama service and confirm that the model name and local API endpoint match the chatbot configuration.
+Start Ollama and ensure the chatbot's configured model name and API endpoint match the running service. If the application runs inside Docker, configure the Ollama host address so the container can reach the host service.
 
 Example questions:
 
@@ -132,65 +135,77 @@ Example questions:
 - How many orders do I have?
 - Show recent stock movements.
 
-The chatbot relies on application data for inventory-related answers. Its accuracy depends on correct database records, intent recognition, and successful API communication.
+Chatbot responses depend on the available database records, supported intents, and successful communication with the language model when required.
 
 ## Docker Setup
 
-Docker support should be considered ready only after the `Dockerfile` and `docker-compose.yml` have been implemented and tested with the project's actual configuration.
-
-Once configured, the intended workflow is:
+Build and start the containers:
 
 ```bash
 docker compose build
 docker compose up -d
+```
+
+Check container status and logs:
+
+```bash
+docker compose ps
 docker compose logs -f
 ```
 
-The container setup should configure the web application, PostgreSQL connectivity, environment variables, migrations, and the Ollama connection as appropriate. Ollama must be reachable from the application container; `localhost` inside a container refers to that container itself, not automatically to the host machine.
-
-Stop the containers with:
+Stop the containers:
 
 ```bash
 docker compose down
 ```
 
-Do not remove database volumes unless you intentionally want to delete the persisted database data.
+Do not remove database volumes unless you intentionally want to delete persisted database data.
 
-## Testing
+**Development note:** Verify the Docker configuration and end-to-end application behavior in the target environment before relying on it. The Django development server (`runserver`) is not intended for production deployment.
 
-The following core workflows have been manually verified:
+## Automated Tests
 
-- User login and logout
-- Product creation, editing, and deletion
-- Automatic stock updates when creating an order
-- Six chatbot questions returning the expected answers
+The project currently includes automated tests for selected user permissions and order/inventory workflows.
 
-Manual verification does not replace automated unit, integration, or API tests. Additional automated test coverage can be added for authentication, product endpoints, order processing, stock restoration, and chatbot responses.
+Run all tests:
+
+```bash
+python manage.py test
+```
+
+The current test suite covers:
+
+- Staff users cannot view the complete user list.
+- Staff users cannot create or delete users.
+- Staff users can view their own user details.
+- Creating an order reduces inventory stock.
+- Orders exceeding available stock are rejected.
+- Deleting an order restores inventory stock.
+
+These tests verify selected workflows; they do not represent complete coverage of every API endpoint or concurrent request scenario.
 
 ## Security Considerations
 
-- Keep `.env` and all credentials out of version control.
-- Use environment variables for secret keys and database credentials.
-- Use appropriate Django production settings, including `DEBUG=False`, valid `ALLOWED_HOSTS`, and secure HTTPS settings, before public deployment.
+- Keep `.env` files and credentials out of version control.
+- Store secret keys and database credentials in environment variables.
+- Configure `DEBUG=False`, valid `ALLOWED_HOSTS`, HTTPS, and other production security settings before public deployment.
 - Restrict database access and avoid exposing database ports unnecessarily.
-- Protect authenticated API endpoints and validate incoming requests.
-- Never publish real credentials, access tokens, or private keys in the repository.
+- Protect authenticated endpoints and validate incoming requests.
+- Review role-based permissions and password handling when changing user-management functionality.
 
 ## Deployment
 
-The application can be prepared for deployment to a suitable hosting platform that supports Python/Django and PostgreSQL. A production deployment requires environment configuration, database provisioning, static-file handling, HTTPS, and a production application server.
+The application can be prepared for a hosting platform that supports Django and PostgreSQL. Production deployment requires suitable environment configuration, database provisioning, static-file handling, HTTPS, and a production application server.
 
-No public deployment URL is provided in this README. Add one only after a deployment has been completed and verified.
+No public deployment URL is listed here because a deployment should be verified before being advertised.
 
 ## Future Improvements
 
-Potential enhancements include:
-
-- Automated unit and integration tests
-- Production deployment and monitoring
-- Improved chatbot intent recognition and error handling
-- More detailed inventory reports and analytics
-- Docker-based development and deployment workflow, if not yet implemented
+- Expand automated tests for authentication, product endpoints, inventory, and chatbot responses.
+- Add automated concurrency tests for simultaneous order requests.
+- Improve chatbot error handling and intent recognition.
+- Add inventory reports and analytics.
+- Configure and verify a production-ready Docker deployment.
 
 ## Author
 
