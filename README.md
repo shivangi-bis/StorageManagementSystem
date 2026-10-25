@@ -2,6 +2,12 @@
 
 A full-stack inventory management application built with Django REST Framework, PostgreSQL and JavaScript. Authenticated users can manage products, track inventory, process orders, review stock movements, and ask an AI-powered chatbot questions about their store in plain English.
 
+## Screenshots
+
+![Dashboard](docs/screenshots/dashboard.jpg)
+![AI Chatbot](docs/screenshots/chatbot.jpg)
+![Products](docs/screenshots/products.jpg)
+
 ## Features
 
 - **Authentication:** Login and logout with JWT-based authentication.
